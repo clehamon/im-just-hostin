@@ -55,7 +55,9 @@
       align-items: center;
       justify-content: center;
       pointer-events: none;
-      z-index: 2
+      z-index: 2;
+      width: 100%;
+      max-width: 900px;
     }
 
     #titleText {
@@ -66,15 +68,62 @@
       text-align: center
     }
 
+    #upperContent {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      padding-bottom: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    #lowerContent {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      padding-top: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
     #subtitleText {
       font-family: 'Public Sans', sans-serif;
-      font-weight: 400;
+      font-weight: 500;
       letter-spacing: .12em;
       line-height: 1.3;
       opacity: .85;
       text-align: center;
       text-transform: uppercase;
       margin-top: 6px
+    }
+
+    #demosText,
+    #meetText {
+      font-family: 'Public Sans', sans-serif;
+      font-weight: 500;
+      letter-spacing: .12em;
+      line-height: 1.3;
+      opacity: .85;
+      text-align: center;
+      text-transform: uppercase;
+      font-size: 16px;
+    }
+
+    #meetText {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 900px;
     }
   </style>
 </head>
@@ -84,12 +133,20 @@
     <pre id="C"></pre>
   </div>
   <div id="textArea">
-    <div id="titleText">AI PROTOTYPING FOR DESIGN</div>
-    <div id="subtitleText">Show and tell</div>
+    <div id="upperContent">
+      <div id="titleText">AI PROTOTYPING FOR DESIGN</div>
+      <div id="subtitleText">Show and tell</div>
+    </div>
 
-    <di id="subtitleText" style="color: red; padding-top: 150px">With demos from <br /> <br /> Dom <br /> Adi <br />
-      Clément <br /> You?
+    <div id="lowerContent">
+      <div id="demosText">With demos from <br /> <br /> Dom <br /> Adi <br />
+        Clément <br /> You?</div>
+    </div>
   </div>
+
+  <div id="meetText">Meet the moment <br />
+    Friday 13th February <br />
+    3pm CET</div>
 
   </div>
   <script>
@@ -101,6 +158,7 @@
     function len3(x, y, z) { return Math.sqrt(x * x + y * y + z * z) }
     function len2(x, y) { return Math.sqrt(x * x + y * y) }
     function normalize3(x, y, z) { const l = len3(x, y, z) || 1; return [x / l, y / l, z / l] }
+    function HSLToHex(h, s, l) { s /= 100; l /= 100; const a = s * Math.min(l, 1 - l); const f = n => { const k = (n + h / 30) % 12; const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return Math.round(255 * c).toString(16).padStart(2, '0') }; return `#${f(0)}${f(8)}${f(4)}` }
 
     // ============================================================
     // WRENCH MESH
@@ -167,6 +225,8 @@
       document.getElementById('C').style.color = S.modelColor;
       document.getElementById('titleText').style.color = S.textColor;
       document.getElementById('subtitleText').style.color = S.textColor;
+      document.getElementById('demosText').style.color = S.textColor;
+      document.getElementById('meetText').style.color = S.textColor;
       document.getElementById('titleText').style.fontSize = S.titleSize + 'px';
       document.getElementById('subtitleText').style.fontSize = S.subtitleSize + 'px';
       document.getElementById('C').style.transform = 'translateY(' + S.modelY + 'px)';
@@ -482,7 +542,7 @@
 
       el.innerHTML = `
 <style>
-#toggle-btn{position:fixed;top:16px;right:16px;z-index:100;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;font-family:'Courier New',monospace;font-size:14px;padding:7px 12px;cursor:pointer;border-radius:5px;backdrop-filter:blur(8px);transition:all .25s}
+#toggle-btn{display:none;position:fixed;top:16px;right:16px;z-index:100;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;font-family:'Courier New',monospace;font-size:14px;padding:7px 12px;cursor:pointer;border-radius:5px;backdrop-filter:blur(8px);transition:all .25s}
 #toggle-btn:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.35)}
 #cp{position:fixed;top:56px;right:16px;z-index:100;background:rgba(0,8,50,.92);border:1px solid rgba(255,255,255,.12);color:#fff;font-family:'Courier New',monospace;font-size:11.5px;padding:18px 22px;border-radius:8px;min-width:280px;backdrop-filter:blur(14px);display:none;flex-direction:column;gap:11px;box-shadow:0 8px 32px rgba(0,0,0,.4);max-height:calc(100vh - 80px);overflow-y:auto}
 #cp.visible{display:flex}
@@ -546,6 +606,7 @@
       const $ = id => document.getElementById(id);
 
       $('toggle-btn').onclick = () => { S.showCtrl = !S.showCtrl; $('cp').classList.toggle('visible', S.showCtrl) };
+      document.addEventListener('keydown', e => { if (e.key === 'q') { S.showCtrl = !S.showCtrl; $('cp').classList.toggle('visible', S.showCtrl) } });
       const bind = (s, v, k, f) => { $(s).oninput = e => { S[k] = parseFloat(e.target.value); $(v).textContent = f(S[k]) } };
       bind('sTX', 'vTX', 'tiltX', v => v.toFixed(2));
       bind('sTZ', 'vTZ', 'tiltZ', v => v.toFixed(2));
@@ -699,6 +760,28 @@
     }
 
     requestAnimationFrame(frame);
+
+    // Randomize colors on click
+    function randomizeColors() {
+      const hue = Math.random() * 360;
+      const isDark = Math.random() > .3;
+      const bgL = isDark ? 5 + Math.random() * 15 : 85 + Math.random() * 10;
+      const mdlL = isDark ? 85 + Math.random() * 15 : 10 + Math.random() * 15;
+      const txtH = (hue + 150 + Math.random() * 60) % 360;
+
+      S.bgColor = HSLToHex(hue, 30 + Math.random() * 40, bgL);
+      S.modelColor = HSLToHex(hue, 5 + Math.random() * 15, mdlL);
+      S.textColor = HSLToHex(txtH, 70 + Math.random() * 30, isDark ? 65 : 35);
+
+      document.getElementById('cBg').value = S.bgColor;
+      document.getElementById('cMdl').value = S.modelColor;
+      document.getElementById('cTxt').value = S.textColor;
+      applyColors();
+    }
+    document.addEventListener('click', e => {
+      if (e.target.closest('#cp') || e.target.closest('#toggle-btn') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+      randomizeColors();
+    });
   </script>
 </body>
 
