@@ -117,6 +117,13 @@
       font-size: 16px;
     }
 
+    #demosText a {
+      color: inherit;
+      text-decoration: underline;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
     #meetText {
       position: absolute;
       bottom: 40px;
@@ -140,7 +147,9 @@
 
     <div id="lowerContent">
       <div id="demosText">With demos from <br /> <br /> Dom <br /> Adi <br />
-        Clément <br /> You?</div>
+        Clément <br /> <a
+          href="https://docs.google.com/spreadsheets/d/1Zu7_GNpb1F1f5XOAUlbAB847M6zwM4UzSocHb1gY-Pc/edit?usp=sharing"
+          target="_blank">You?</a></div>
     </div>
   </div>
 
@@ -779,7 +788,7 @@
       applyColors();
     }
     document.addEventListener('click', e => {
-      if (e.target.closest('#cp') || e.target.closest('#toggle-btn') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+      if (e.target.closest('#cp') || e.target.closest('#toggle-btn') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('a')) return;
       randomizeColors();
     });
   </script>
