@@ -111,8 +111,19 @@
 
     .sub a,
     .sub2 a {
-      color: blue;
+      color: #5ba4f5;
       pointer-events: auto;
+      text-decoration: underline;
+    }
+
+    .sub a:visited,
+    .sub2 a:visited {
+      color: #a78bfa;
+    }
+
+    .sub a:hover,
+    .sub2 a:hover {
+      color: #93c5fd;
     }
 
     #subtitles .sub2 {
@@ -125,7 +136,6 @@
       font-weight: 800;
       font-size: 56px;
       white-space: nowrap;
-      z-index: 3;
       top: 0;
       left: 0;
       will-change: transform;
@@ -414,6 +424,10 @@
       return PALETTE[Math.floor(Math.random() * PALETTE.length)];
     }
 
+    function pickZ() {
+      return Math.floor(Math.random() * 11) - 5;
+    }
+
     // ------- Bouncer system -------
     const stage = document.getElementById('stage');
 
@@ -429,6 +443,7 @@
         this.el.className = 'bouncer';
         this.el.textContent = name;
         this.el.style.color = this.color;
+        this.el.style.zIndex = pickZ();
         stage.appendChild(this.el);
 
         // measure after append
@@ -504,22 +519,26 @@
           this.vx = Math.abs(this.vx);
           this.color = pickColor();
           this.el.style.color = this.color;
+          this.el.style.zIndex = pickZ();
         } else if (this.x >= maxX) {
           this.x = maxX;
           this.vx = -Math.abs(this.vx);
           this.color = pickColor();
           this.el.style.color = this.color;
+          this.el.style.zIndex = pickZ();
         }
         if (this.y <= 0) {
           this.y = 0;
           this.vy = Math.abs(this.vy);
           this.color = pickColor();
           this.el.style.color = this.color;
+          this.el.style.zIndex = pickZ();
         } else if (this.y >= maxY) {
           this.y = maxY;
           this.vy = -Math.abs(this.vy);
           this.color = pickColor();
           this.el.style.color = this.color;
+          this.el.style.zIndex = pickZ();
         }
 
         this.updateTransform();
