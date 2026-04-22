@@ -1,614 +1,677 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AI Tooling Show and tell – Volume 2</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jacquard+12&family=Inter:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0a0a0a;
-    --off-white: #f4f1e8;
-  }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-    background: var(--bg);
-    font-family: 'Jacquard 12', monospace;
-    color: var(--off-white);
-    user-select: none;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Tooling Show and tell – Volume 2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Jacquard+12&family=Inter:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --off-white: #f4f1e8;
+    }
 
-  /* Subtle CRT vibe - very gentle scanlines */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background: repeating-linear-gradient(
-      to bottom,
-      rgba(255,255,255,0.015) 0,
-      rgba(255,255,255,0.015) 1px,
-      transparent 1px,
-      transparent 3px
-    );
-    z-index: 5;
-  }
+    * {
+      box-sizing: border-box;
+    }
 
-  #stage {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-  }
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: 'Jacquard 12', monospace;
+      color: var(--off-white);
+      user-select: none;
+    }
 
-  #title {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    z-index: 1;
-    color: var(--off-white);
-    line-height: 0.9;
-    pointer-events: none;
-    letter-spacing: 0.02em;
-  }
-  #subtitles {
-    position: absolute;
-    left: 50%;
-    bottom: 48px;
-    transform: translateX(-50%);
-    text-align: center;
-    z-index: 1;
-    color: #FFFFFF;
-    pointer-events: none;
-  }
-  #title .main {
-    font-family: 'Jacquard 12', monospace;
-    font-size: clamp(64px, 9vw, 160px);
-    display: block;
-    text-shadow: 0 0 40px rgba(244, 241, 232, 0.08);
-  }
-  #title .sub,
-  #title .sub2,
-  #subtitles .sub,
-  #subtitles .sub2 {
-    font-family: 'Futura PT', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: 500;
-    font-size: clamp(16px, 2vw, 20px);
-    display: block;
-    opacity: 0.8;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-  }
-  #subtitles .sub2 {
-    margin-top: 0.4em;
-  }
+    /* CRT scanlines */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(to bottom,
+          rgba(0, 0, 0, 0.35) 0,
+          rgba(0, 0, 0, 0.35) 1px,
+          transparent 1px,
+          transparent 3px);
+      z-index: 5;
+    }
 
-  .bouncer {
-    position: absolute;
-    font-family: Futura, "Futura PT", "Trebuchet MS", "Century Gothic", "Avenir Next", sans-serif;
-    font-weight: 800;
-    font-size: 56px;
-    white-space: nowrap;
-    z-index: 3;
-    top: 0;
-    left: 0;
-    will-change: transform;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-    font-style: italic;
-    transform-origin: center;
-  }
-  /* DVD-logo-ish pill underline under the name */
-  .bouncer::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    bottom: 2px;
-    transform: translateX(-50%);
-    width: 62%;
-    height: 10px;
-    background: currentColor;
-    border-radius: 50%/60%;
-  }
+    /* CRT vignette */
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center,
+          transparent 55%,
+          rgba(0, 0, 0, 0.7) 100%);
+      z-index: 6;
+    }
 
-  /* Dev tool panel */
-  #devtool {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 280px;
-    background: #1a1a1a;
-    border: 1px solid #3a3a3a;
-    box-shadow:
-      inset 1px 1px 0 #555,
-      inset -1px -1px 0 #000,
-      4px 4px 0 rgba(0,0,0,0.6);
-    color: #d4d0c4;
-    font-family: "Lucida Console", "Courier New", monospace;
-    font-size: 11px;
-    z-index: 100;
-    display: none;
-  }
-  #devtool.open { display: block; }
+    #stage {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
 
-  #devtool .title-bar {
-    background: linear-gradient(to bottom, #3a3a3a 0%, #1a1a1a 100%);
-    color: #e8e4d4;
-    padding: 4px 8px;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #000;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-  #devtool .title-bar .dot {
-    width: 8px;
-    height: 8px;
-    background: #00ff88;
-    border-radius: 50%;
-    box-shadow: 0 0 6px #00ff88;
-    display: inline-block;
-    margin-right: 6px;
-    vertical-align: middle;
-  }
-  #devtool .close-x {
-    cursor: pointer;
-    padding: 0 6px;
-    color: #888;
-  }
-  #devtool .close-x:hover { color: #fff; }
+    #title {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 1;
+      color: var(--off-white);
+      line-height: 0.9;
+      pointer-events: none;
+      letter-spacing: 0.02em;
+    }
 
-  #devtool .body {
-    padding: 12px;
-  }
+    #subtitles {
+      position: absolute;
+      left: 50%;
+      bottom: 48px;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 1;
+      color: #FFFFFF;
+      pointer-events: none;
+    }
 
-  #devtool .row {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 10px;
-  }
-  #devtool input[type="text"] {
-    flex: 1;
-    background: #0a0a0a;
-    border: 1px solid #000;
-    box-shadow: inset 1px 1px 0 #2a2a2a;
-    color: #e8e4d4;
-    padding: 5px 7px;
-    font-family: inherit;
-    font-size: 11px;
-    outline: none;
-  }
-  #devtool input[type="text"]:focus {
-    border-color: #00ff88;
-  }
-  #devtool button {
-    background: linear-gradient(to bottom, #3a3a3a, #1f1f1f);
-    border: 1px solid #000;
-    box-shadow: inset 1px 1px 0 #555;
-    color: #e8e4d4;
-    padding: 5px 10px;
-    font-family: inherit;
-    font-size: 11px;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  #devtool button:hover {
-    background: linear-gradient(to bottom, #4a4a4a, #2f2f2f);
-  }
-  #devtool button:active {
-    box-shadow: inset 1px 1px 0 #000;
-  }
+    #title .main {
+      font-family: 'Jacquard 12', monospace;
+      font-size: clamp(64px, 9vw, 160px);
+      display: block;
+      text-shadow: 0 0 40px rgba(244, 241, 232, 0.08);
+    }
 
-  #devtool .hint {
-    color: #666;
-    font-size: 10px;
-    margin-bottom: 8px;
-    border-bottom: 1px dashed #333;
-    padding-bottom: 8px;
-  }
-  #devtool .hint kbd {
-    background: #2a2a2a;
-    border: 1px solid #000;
-    box-shadow: inset 1px 1px 0 #444;
-    padding: 1px 5px;
-    color: #e8e4d4;
-    font-size: 10px;
-    border-radius: 2px;
-  }
+    #title .sub,
+    #title .sub2,
+    #subtitles .sub,
+    #subtitles .sub2 {
+      font-family: 'Futura PT', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 500;
+      font-size: clamp(16px, 2vw, 20px);
+      display: block;
+      opacity: 0.8;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
 
-  #devtool .list {
-    max-height: 260px;
-    overflow-y: auto;
-    border: 1px solid #000;
-    background: #0a0a0a;
-    box-shadow: inset 1px 1px 0 #2a2a2a;
-  }
-  #devtool .list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 8px;
-    border-bottom: 1px solid #1a1a1a;
-  }
-  #devtool .list-item:hover {
-    background: #151515;
-  }
-  #devtool .list-item .name {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0;
-    color: #e8e4d4;
-  }
-  #devtool .list-item .swatch {
-    width: 10px;
-    height: 10px;
-    display: inline-block;
-    margin-right: 6px;
-    vertical-align: middle;
-    border: 1px solid #000;
-  }
-  #devtool .list-item .remove {
-    background: #2a1010;
-    border: 1px solid #000;
-    color: #ff6666;
-    width: 18px;
-    height: 18px;
-    font-size: 14px;
-    line-height: 14px;
-    cursor: pointer;
-    padding: 0;
-    text-align: center;
-  }
-  #devtool .list-item .remove:hover {
-    background: #5a1010;
-    color: #fff;
-  }
-  #devtool .count {
-    color: #888;
-    font-size: 10px;
-    margin-top: 8px;
-    text-align: right;
-  }
+    .sub a,
+    .sub2 a {
+      color: blue;
+      pointer-events: auto;
+    }
 
-  /* scrollbar */
-  #devtool .list::-webkit-scrollbar { width: 10px; }
-  #devtool .list::-webkit-scrollbar-track { background: #0a0a0a; }
-  #devtool .list::-webkit-scrollbar-thumb {
-    background: #3a3a3a;
-    border: 1px solid #000;
-  }
+    #subtitles .sub2 {
+      margin-top: 0.4em;
+    }
 
-  /* Tiny Q hint when tool closed */
-  #q-hint {
-    display: none;
-  }
-  #q-hint kbd {
-    background: #1a1a1a;
-    border: 1px solid #333;
-    padding: 1px 5px;
-    color: #666;
-    border-radius: 2px;
-  }
-</style>
+    .bouncer {
+      position: absolute;
+      font-family: Futura, "Futura PT", "Trebuchet MS", "Century Gothic", "Avenir Next", sans-serif;
+      font-weight: 800;
+      font-size: 56px;
+      white-space: nowrap;
+      z-index: 3;
+      top: 0;
+      left: 0;
+      will-change: transform;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      font-style: italic;
+      transform-origin: center;
+      pointer-events: none;
+    }
+
+    /* DVD-logo-ish pill underline under the name */
+    .bouncer::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 2px;
+      transform: translateX(-50%);
+      width: 62%;
+      height: 10px;
+      background: currentColor;
+      border-radius: 50%/60%;
+    }
+
+    /* Dev tool panel */
+    #devtool {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 280px;
+      background: #1a1a1a;
+      border: 1px solid #3a3a3a;
+      box-shadow:
+        inset 1px 1px 0 #555,
+        inset -1px -1px 0 #000,
+        4px 4px 0 rgba(0, 0, 0, 0.6);
+      color: #d4d0c4;
+      font-family: "Lucida Console", "Courier New", monospace;
+      font-size: 11px;
+      z-index: 100;
+      display: none;
+    }
+
+    #devtool.open {
+      display: block;
+    }
+
+    #devtool .title-bar {
+      background: linear-gradient(to bottom, #3a3a3a 0%, #1a1a1a 100%);
+      color: #e8e4d4;
+      padding: 4px 8px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #000;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    #devtool .title-bar .dot {
+      width: 8px;
+      height: 8px;
+      background: #00ff88;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #00ff88;
+      display: inline-block;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    #devtool .close-x {
+      cursor: pointer;
+      padding: 0 6px;
+      color: #888;
+    }
+
+    #devtool .close-x:hover {
+      color: #fff;
+    }
+
+    #devtool .body {
+      padding: 12px;
+    }
+
+    #devtool .row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    #devtool input[type="text"] {
+      flex: 1;
+      background: #0a0a0a;
+      border: 1px solid #000;
+      box-shadow: inset 1px 1px 0 #2a2a2a;
+      color: #e8e4d4;
+      padding: 5px 7px;
+      font-family: inherit;
+      font-size: 11px;
+      outline: none;
+    }
+
+    #devtool input[type="text"]:focus {
+      border-color: #00ff88;
+    }
+
+    #devtool button {
+      background: linear-gradient(to bottom, #3a3a3a, #1f1f1f);
+      border: 1px solid #000;
+      box-shadow: inset 1px 1px 0 #555;
+      color: #e8e4d4;
+      padding: 5px 10px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    #devtool button:hover {
+      background: linear-gradient(to bottom, #4a4a4a, #2f2f2f);
+    }
+
+    #devtool button:active {
+      box-shadow: inset 1px 1px 0 #000;
+    }
+
+    #devtool .hint {
+      color: #666;
+      font-size: 10px;
+      margin-bottom: 8px;
+      border-bottom: 1px dashed #333;
+      padding-bottom: 8px;
+    }
+
+    #devtool .hint kbd {
+      background: #2a2a2a;
+      border: 1px solid #000;
+      box-shadow: inset 1px 1px 0 #444;
+      padding: 1px 5px;
+      color: #e8e4d4;
+      font-size: 10px;
+      border-radius: 2px;
+    }
+
+    #devtool .list {
+      max-height: 260px;
+      overflow-y: auto;
+      border: 1px solid #000;
+      background: #0a0a0a;
+      box-shadow: inset 1px 1px 0 #2a2a2a;
+    }
+
+    #devtool .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 8px;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    #devtool .list-item:hover {
+      background: #151515;
+    }
+
+    #devtool .list-item .name {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0;
+      color: #e8e4d4;
+    }
+
+    #devtool .list-item .swatch {
+      width: 10px;
+      height: 10px;
+      display: inline-block;
+      margin-right: 6px;
+      vertical-align: middle;
+      border: 1px solid #000;
+    }
+
+    #devtool .list-item .remove {
+      background: #2a1010;
+      border: 1px solid #000;
+      color: #ff6666;
+      width: 18px;
+      height: 18px;
+      font-size: 14px;
+      line-height: 14px;
+      cursor: pointer;
+      padding: 0;
+      text-align: center;
+    }
+
+    #devtool .list-item .remove:hover {
+      background: #5a1010;
+      color: #fff;
+    }
+
+    #devtool .count {
+      color: #888;
+      font-size: 10px;
+      margin-top: 8px;
+      text-align: right;
+    }
+
+    /* scrollbar */
+    #devtool .list::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    #devtool .list::-webkit-scrollbar-track {
+      background: #0a0a0a;
+    }
+
+    #devtool .list::-webkit-scrollbar-thumb {
+      background: #3a3a3a;
+      border: 1px solid #000;
+    }
+
+    /* Tiny Q hint when tool closed */
+    #q-hint {
+      display: none;
+    }
+
+    #q-hint kbd {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      padding: 1px 5px;
+      color: #666;
+      border-radius: 2px;
+    }
+  </style>
 </head>
+
 <body>
 
-<div id="stage">
-  <div id="title">
-    <span class="main">Artificial Intelligence Tooling</span>
-  </div>
-  <div id="subtitles">
-    <span class="sub">Show and tell · Volume 2 · 23rd of April · 2pm CET</span>
-    <!-- <span class="sub2">23rd of April · 2pm CET</span> -->
-  </div>
-</div>
-
-<div id="devtool" aria-hidden="true">
-  <div class="title-bar">
-    <span><span class="dot"></span>NAME.SYS v1.0</span>
-    <span class="close-x" id="closeBtn">✕</span>
-  </div>
-  <div class="body">
-    <div class="hint">
-      Toggle: <kbd>Q</kbd> &nbsp;·&nbsp; Add: <kbd>Enter</kbd>
+  <div id="stage">
+    <div id="title">
+      <span class="main">Artificial Intelligence Tooling</span>
     </div>
-    <div class="row">
-      <input id="nameInput" type="text" placeholder="enter a name..." maxlength="24" autocomplete="off"/>
-      <button id="addBtn">Add</button>
+    <div id="subtitles">
+      <span class="sub">Show and tell · Volume 2 · 23rd of April</span>
+      <span class="sub2">
+        <a href="https://docs.google.com/spreadsheets/d/1Zu7_GNpb1F1f5XOAUlbAB847M6zwM4UzSocHb1gY-Pc">Show
+          something</a>
+      </span>
     </div>
-    <div class="list" id="nameList"></div>
-    <div class="count" id="countLabel">0 names</div>
   </div>
-</div>
 
-<div id="q-hint"><kbd>Q</kbd> &nbsp;dev panel</div>
+  <div id="devtool" aria-hidden="true">
+    <div class="title-bar">
+      <span><span class="dot"></span>NAME.SYS v1.0</span>
+      <span class="close-x" id="closeBtn">✕</span>
+    </div>
+    <div class="body">
+      <div class="hint">
+        Toggle: <kbd>Q</kbd> &nbsp;·&nbsp; Add: <kbd>Enter</kbd>
+      </div>
+      <div class="row">
+        <input id="nameInput" type="text" placeholder="enter a name..." maxlength="24" autocomplete="off" />
+        <button id="addBtn">Add</button>
+      </div>
+      <div class="list" id="nameList"></div>
+      <div class="count" id="countLabel">0 names</div>
+    </div>
+  </div>
 
-<script>
-// ------- Classic 2000s screensaver palette (vibrant primary/secondary hues) -------
-const PALETTE = [
-  '#ff3b3b', // red
-  '#ff8c1a', // orange
-  '#ffd21a', // yellow
-  '#38e038', // green
-  '#1ac8ff', // cyan
-  '#3a5cff', // blue
-  '#c43bff', // purple
-  '#ff3bb5', // magenta/pink
-];
+  <div id="q-hint"><kbd>Q</kbd> &nbsp;dev panel</div>
 
-function pickColor() {
-  return PALETTE[Math.floor(Math.random() * PALETTE.length)];
-}
+  <script>
+    // ------- Classic 2000s screensaver palette (vibrant primary/secondary hues) -------
+    const PALETTE = [
+      '#ff3b3b', // red
+      '#ff8c1a', // orange
+      '#ffd21a', // yellow
+      '#38e038', // green
+      '#1ac8ff', // cyan
+      '#3a5cff', // blue
+      '#c43bff', // purple
+      '#ff3bb5', // magenta/pink
+    ];
 
-// ------- Bouncer system -------
-const stage = document.getElementById('stage');
-
-// Approx speed matching classic screensaver: slow, steady drift.
-// Classic one is ~40-60 px/s. We'll use a similar range.
-const SPEED = 70; // px per second
-
-class Bouncer {
-  constructor(name) {
-    this.name = name;
-    this.color = pickColor();
-    this.el = document.createElement('div');
-    this.el.className = 'bouncer';
-    this.el.textContent = name;
-    this.el.style.color = this.color;
-    stage.appendChild(this.el);
-
-    // measure after append
-    const rect = this.el.getBoundingClientRect();
-    this.w = rect.width;
-    this.h = rect.height;
-
-    // Random start pos within viewport (avoid edges)
-    this.x = Math.random() * Math.max(1, window.innerWidth - this.w);
-    this.y = Math.random() * Math.max(1, window.innerHeight - this.h);
-
-    // Random diagonal-ish direction (unit vector), but not near-axis
-    const angle = Math.random() * Math.PI * 2;
-    this.vx = Math.cos(angle) * SPEED;
-    this.vy = Math.sin(angle) * SPEED;
-    // ensure some minimum on each axis so motion looks like classic diagonal
-    if (Math.abs(this.vx) < SPEED * 0.4) this.vx = (this.vx >= 0 ? 1 : -1) * SPEED * 0.6;
-    if (Math.abs(this.vy) < SPEED * 0.4) this.vy = (this.vy >= 0 ? 1 : -1) * SPEED * 0.6;
-    // normalise to SPEED
-    const mag = Math.hypot(this.vx, this.vy);
-    this.vx = this.vx / mag * SPEED;
-    this.vy = this.vy / mag * SPEED;
-
-    this.updateTransform();
-  }
-  updateTransform() {
-    this.el.style.transform = `translate(${this.x}px, ${this.y}px)`;
-  }
-  remeasure() {
-    const rect = this.el.getBoundingClientRect();
-    // rect is the transformed rect; get untransformed width/height via offset
-    this.w = this.el.offsetWidth;
-    this.h = this.el.offsetHeight;
-  }
-  step(dt) {
-    if (homing) {
-      // Target: top-right corner of the viewport
-      const targetX = window.innerWidth;
-      const targetY = 0;
-      // Current "anchor" — use element's center so it flies right INTO the corner
-      const cx = this.x + this.w / 2;
-      const cy = this.y + this.h / 2;
-      const dx = targetX - cx;
-      const dy = targetY - cy;
-      const dist = Math.hypot(dx, dy) || 1;
-      // Desired velocity vector at same SPEED, pointing at the corner
-      const desiredVx = dx / dist * SPEED;
-      const desiredVy = dy / dist * SPEED;
-      // Smoothly steer current velocity toward desired (exponential ease).
-      // k tuned so turn completes in ~0.8s without changing magnitude much.
-      const k = 1 - Math.exp(-dt * 2.2);
-      this.vx += (desiredVx - this.vx) * k;
-      this.vy += (desiredVy - this.vy) * k;
-      // Renormalise to SPEED so we don't accelerate/decelerate.
-      const mag = Math.hypot(this.vx, this.vy) || 1;
-      this.vx = this.vx / mag * SPEED;
-      this.vy = this.vy / mag * SPEED;
-
-      this.x += this.vx * dt;
-      this.y += this.vy * dt;
-      this.updateTransform();
-      return;
+    function pickColor() {
+      return PALETTE[Math.floor(Math.random() * PALETTE.length)];
     }
 
-    this.x += this.vx * dt;
-    this.y += this.vy * dt;
+    // ------- Bouncer system -------
+    const stage = document.getElementById('stage');
 
-    const maxX = window.innerWidth - this.w;
-    const maxY = window.innerHeight - this.h;
+    // Approx speed matching classic screensaver: slow, steady drift.
+    // Classic one is ~40-60 px/s. We'll use a similar range.
+    const SPEED = 70; // px per second
 
-    if (this.x <= 0) {
-      this.x = 0;
-      this.vx = Math.abs(this.vx);
-      this.color = pickColor();
-      this.el.style.color = this.color;
-    } else if (this.x >= maxX) {
-      this.x = maxX;
-      this.vx = -Math.abs(this.vx);
-      this.color = pickColor();
-      this.el.style.color = this.color;
-    }
-    if (this.y <= 0) {
-      this.y = 0;
-      this.vy = Math.abs(this.vy);
-      this.color = pickColor();
-      this.el.style.color = this.color;
-    } else if (this.y >= maxY) {
-      this.y = maxY;
-      this.vy = -Math.abs(this.vy);
-      this.color = pickColor();
-      this.el.style.color = this.color;
-    }
+    class Bouncer {
+      constructor(name) {
+        this.name = name;
+        this.color = pickColor();
+        this.el = document.createElement('div');
+        this.el.className = 'bouncer';
+        this.el.textContent = name;
+        this.el.style.color = this.color;
+        stage.appendChild(this.el);
 
-    this.updateTransform();
-  }
-  destroy() {
-    this.el.remove();
-  }
-}
+        // measure after append
+        const rect = this.el.getBoundingClientRect();
+        this.w = rect.width;
+        this.h = rect.height;
 
-const bouncers = [];
-let homing = false;
+        // Random start pos within viewport (avoid edges)
+        this.x = Math.random() * Math.max(1, window.innerWidth - this.w);
+        this.y = Math.random() * Math.max(1, window.innerHeight - this.h);
 
-function addName(name) {
-  name = name.trim();
-  if (!name) return;
-  const b = new Bouncer(name);
-  bouncers.push(b);
-  renderList();
-}
+        // Random diagonal-ish direction (unit vector), but not near-axis
+        const angle = Math.random() * Math.PI * 2;
+        this.vx = Math.cos(angle) * SPEED;
+        this.vy = Math.sin(angle) * SPEED;
+        // ensure some minimum on each axis so motion looks like classic diagonal
+        if (Math.abs(this.vx) < SPEED * 0.4) this.vx = (this.vx >= 0 ? 1 : -1) * SPEED * 0.6;
+        if (Math.abs(this.vy) < SPEED * 0.4) this.vy = (this.vy >= 0 ? 1 : -1) * SPEED * 0.6;
+        // normalise to SPEED
+        const mag = Math.hypot(this.vx, this.vy);
+        this.vx = this.vx / mag * SPEED;
+        this.vy = this.vy / mag * SPEED;
 
-function removeBouncer(index) {
-  const [b] = bouncers.splice(index, 1);
-  if (b) b.destroy();
-  renderList();
-}
-
-// ------- Animation loop -------
-let lastT = performance.now();
-function loop(now) {
-  const dt = Math.min(0.05, (now - lastT) / 1000); // cap dt
-  lastT = now;
-  for (const b of bouncers) b.step(dt);
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-
-// refresh text measurements once fonts load (Jacquard 12 changes width)
-document.fonts && document.fonts.ready.then(() => {
-  for (const b of bouncers) b.remeasure();
-});
-
-// handle resize: clamp positions inside new bounds
-window.addEventListener('resize', () => {
-  for (const b of bouncers) {
-    b.remeasure();
-    b.x = Math.min(b.x, Math.max(0, window.innerWidth - b.w));
-    b.y = Math.min(b.y, Math.max(0, window.innerHeight - b.h));
-  }
-});
-
-// ------- Dev tool -------
-const devtool = document.getElementById('devtool');
-const nameInput = document.getElementById('nameInput');
-const addBtn = document.getElementById('addBtn');
-const nameList = document.getElementById('nameList');
-const countLabel = document.getElementById('countLabel');
-const closeBtn = document.getElementById('closeBtn');
-const qHint = document.getElementById('q-hint');
-
-function toggleDevtool(force) {
-  const shouldOpen = force !== undefined ? force : !devtool.classList.contains('open');
-  devtool.classList.toggle('open', shouldOpen);
-  if (shouldOpen) {
-    setTimeout(() => nameInput.focus(), 0);
-  } else {
-    nameInput.blur();
-  }
-}
-
-function renderList() {
-  nameList.innerHTML = '';
-  bouncers.forEach((b, i) => {
-    const row = document.createElement('div');
-    row.className = 'list-item';
-    const left = document.createElement('span');
-    left.innerHTML = `<span class="swatch" style="background:${b.color}"></span><span class="name">${escapeHtml(b.name)}</span>`;
-    const btn = document.createElement('button');
-    btn.className = 'remove';
-    btn.textContent = '×';
-    btn.title = 'Remove';
-    btn.addEventListener('click', () => removeBouncer(i));
-    row.appendChild(left);
-    row.appendChild(btn);
-    nameList.appendChild(row);
-  });
-  countLabel.textContent = `${bouncers.length} name${bouncers.length === 1 ? '' : 's'}`;
-}
-
-function escapeHtml(s) {
-  return s.replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
-}
-
-addBtn.addEventListener('click', () => {
-  addName(nameInput.value);
-  nameInput.value = '';
-  nameInput.focus();
-});
-nameInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    addName(nameInput.value);
-    nameInput.value = '';
-  }
-  // don't let Q in the input toggle the panel
-  e.stopPropagation();
-});
-closeBtn.addEventListener('click', () => toggleDevtool(false));
-
-// Global Q toggle (not when typing in input)
-window.addEventListener('keydown', (e) => {
-  if (e.key === 'q' || e.key === 'Q') {
-    const t = e.target;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
-    e.preventDefault();
-    toggleDevtool();
-  } else if (e.key === ',') {
-    const t = e.target;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
-    homing = true;
-  } else if (e.key === '.') {
-    const t = e.target;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
-    homing = false;
-    // Reposition any off-screen bouncers back inside and give them a new diagonal velocity
-    for (const b of bouncers) {
-      const maxX = Math.max(1, window.innerWidth - b.w);
-      const maxY = Math.max(1, window.innerHeight - b.h);
-      if (b.x < 0 || b.y < 0 || b.x > maxX || b.y > maxY) {
-        b.x = Math.random() * maxX;
-        b.y = Math.random() * maxY;
+        this.updateTransform();
       }
-      const angle = Math.random() * Math.PI * 2;
-      let vx = Math.cos(angle) * SPEED;
-      let vy = Math.sin(angle) * SPEED;
-      if (Math.abs(vx) < SPEED * 0.4) vx = (vx >= 0 ? 1 : -1) * SPEED * 0.6;
-      if (Math.abs(vy) < SPEED * 0.4) vy = (vy >= 0 ? 1 : -1) * SPEED * 0.6;
-      const mag = Math.hypot(vx, vy);
-      b.vx = vx / mag * SPEED;
-      b.vy = vy / mag * SPEED;
+      updateTransform() {
+        this.el.style.transform = `translate(${this.x}px, ${this.y}px)`;
+      }
+      remeasure() {
+        const rect = this.el.getBoundingClientRect();
+        // rect is the transformed rect; get untransformed width/height via offset
+        this.w = this.el.offsetWidth;
+        this.h = this.el.offsetHeight;
+      }
+      step(dt) {
+        if (homing) {
+          // Target: top-right corner of the viewport
+          const targetX = window.innerWidth;
+          const targetY = 0;
+          // Current "anchor" — use element's center so it flies right INTO the corner
+          const cx = this.x + this.w / 2;
+          const cy = this.y + this.h / 2;
+          const dx = targetX - cx;
+          const dy = targetY - cy;
+          const dist = Math.hypot(dx, dy) || 1;
+          // Desired velocity vector at same SPEED, pointing at the corner
+          const desiredVx = dx / dist * SPEED;
+          const desiredVy = dy / dist * SPEED;
+          // Smoothly steer current velocity toward desired (exponential ease).
+          // k tuned so turn completes in ~0.8s without changing magnitude much.
+          const k = 1 - Math.exp(-dt * 2.2);
+          this.vx += (desiredVx - this.vx) * k;
+          this.vy += (desiredVy - this.vy) * k;
+          // Renormalise to SPEED so we don't accelerate/decelerate.
+          const mag = Math.hypot(this.vx, this.vy) || 1;
+          this.vx = this.vx / mag * SPEED;
+          this.vy = this.vy / mag * SPEED;
+
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+          this.updateTransform();
+          return;
+        }
+
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+
+        const maxX = window.innerWidth - this.w;
+        const maxY = window.innerHeight - this.h;
+
+        if (this.x <= 0) {
+          this.x = 0;
+          this.vx = Math.abs(this.vx);
+          this.color = pickColor();
+          this.el.style.color = this.color;
+        } else if (this.x >= maxX) {
+          this.x = maxX;
+          this.vx = -Math.abs(this.vx);
+          this.color = pickColor();
+          this.el.style.color = this.color;
+        }
+        if (this.y <= 0) {
+          this.y = 0;
+          this.vy = Math.abs(this.vy);
+          this.color = pickColor();
+          this.el.style.color = this.color;
+        } else if (this.y >= maxY) {
+          this.y = maxY;
+          this.vy = -Math.abs(this.vy);
+          this.color = pickColor();
+          this.el.style.color = this.color;
+        }
+
+        this.updateTransform();
+      }
+      destroy() {
+        this.el.remove();
+      }
     }
-  } else if (e.key === 'Escape') {
-    if (devtool.classList.contains('open')) toggleDevtool(false);
-  }
-});
 
-// ------- Seed initial names -------
-const seed = ['Stefano', 'Clem', 'Dom', 'Nicole', 'You ?'];
-seed.forEach(addName);
+    const bouncers = [];
+    let homing = false;
 
-</script>
+    function addName(name) {
+      name = name.trim();
+      if (!name) return;
+      const b = new Bouncer(name);
+      bouncers.push(b);
+      renderList();
+    }
+
+    function removeBouncer(index) {
+      const [b] = bouncers.splice(index, 1);
+      if (b) b.destroy();
+      renderList();
+    }
+
+    // ------- Animation loop -------
+    let lastT = performance.now();
+    function loop(now) {
+      const dt = Math.min(0.05, (now - lastT) / 1000); // cap dt
+      lastT = now;
+      for (const b of bouncers) b.step(dt);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    // refresh text measurements once fonts load (Jacquard 12 changes width)
+    document.fonts && document.fonts.ready.then(() => {
+      for (const b of bouncers) b.remeasure();
+    });
+
+    // handle resize: clamp positions inside new bounds
+    window.addEventListener('resize', () => {
+      for (const b of bouncers) {
+        b.remeasure();
+        b.x = Math.min(b.x, Math.max(0, window.innerWidth - b.w));
+        b.y = Math.min(b.y, Math.max(0, window.innerHeight - b.h));
+      }
+    });
+
+    // ------- Dev tool -------
+    const devtool = document.getElementById('devtool');
+    const nameInput = document.getElementById('nameInput');
+    const addBtn = document.getElementById('addBtn');
+    const nameList = document.getElementById('nameList');
+    const countLabel = document.getElementById('countLabel');
+    const closeBtn = document.getElementById('closeBtn');
+    const qHint = document.getElementById('q-hint');
+
+    function toggleDevtool(force) {
+      const shouldOpen = force !== undefined ? force : !devtool.classList.contains('open');
+      devtool.classList.toggle('open', shouldOpen);
+      if (shouldOpen) {
+        setTimeout(() => nameInput.focus(), 0);
+      } else {
+        nameInput.blur();
+      }
+    }
+
+    function renderList() {
+      nameList.innerHTML = '';
+      bouncers.forEach((b, i) => {
+        const row = document.createElement('div');
+        row.className = 'list-item';
+        const left = document.createElement('span');
+        left.innerHTML = `<span class="swatch" style="background:${b.color}"></span><span class="name">${escapeHtml(b.name)}</span>`;
+        const btn = document.createElement('button');
+        btn.className = 'remove';
+        btn.textContent = '×';
+        btn.title = 'Remove';
+        btn.addEventListener('click', () => removeBouncer(i));
+        row.appendChild(left);
+        row.appendChild(btn);
+        nameList.appendChild(row);
+      });
+      countLabel.textContent = `${bouncers.length} name${bouncers.length === 1 ? '' : 's'}`;
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    addBtn.addEventListener('click', () => {
+      addName(nameInput.value);
+      nameInput.value = '';
+      nameInput.focus();
+    });
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addName(nameInput.value);
+        nameInput.value = '';
+      }
+      // don't let Q in the input toggle the panel
+      e.stopPropagation();
+    });
+    closeBtn.addEventListener('click', () => toggleDevtool(false));
+
+    // Global Q toggle (not when typing in input)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'q' || e.key === 'Q') {
+        const t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+        e.preventDefault();
+        toggleDevtool();
+      } else if (e.key === ',') {
+        const t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+        homing = true;
+      } else if (e.key === '.') {
+        const t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+        homing = false;
+        // Reposition any off-screen bouncers back inside and give them a new diagonal velocity
+        for (const b of bouncers) {
+          const maxX = Math.max(1, window.innerWidth - b.w);
+          const maxY = Math.max(1, window.innerHeight - b.h);
+          if (b.x < 0 || b.y < 0 || b.x > maxX || b.y > maxY) {
+            b.x = Math.random() * maxX;
+            b.y = Math.random() * maxY;
+          }
+          const angle = Math.random() * Math.PI * 2;
+          let vx = Math.cos(angle) * SPEED;
+          let vy = Math.sin(angle) * SPEED;
+          if (Math.abs(vx) < SPEED * 0.4) vx = (vx >= 0 ? 1 : -1) * SPEED * 0.6;
+          if (Math.abs(vy) < SPEED * 0.4) vy = (vy >= 0 ? 1 : -1) * SPEED * 0.6;
+          const mag = Math.hypot(vx, vy);
+          b.vx = vx / mag * SPEED;
+          b.vy = vy / mag * SPEED;
+        }
+      } else if (e.key === 'Escape') {
+        if (devtool.classList.contains('open')) toggleDevtool(false);
+      }
+    });
+
+    // ------- Seed initial names -------
+    const seed = ['Stefano', 'Clem', 'Dom', 'Seky', 'You ?'];
+    seed.forEach(addName);
+
+  </script>
 </body>
+
 </html>
